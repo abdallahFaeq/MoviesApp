@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.training.hiltretrofit.R
+import com.training.hiltretrofit.adapter.LoadMovieAdapter
 import com.training.hiltretrofit.adapter.MoviesAdapter
 import com.training.hiltretrofit.api.ApiService
 import com.training.hiltretrofit.databinding.FragmentMoviesBinding
@@ -65,6 +66,12 @@ class MoviesFragment : Fragment() {
                 binding.prgBarMovies.isVisible = state is LoadState.Loading
             }
         }
+
+        binding.rlMovies.adapter = moviesAdapter.withLoadStateFooter(
+            LoadMovieAdapter{
+                moviesAdapter.retry()
+            }
+        )
     }
 
     private fun initMoviesRv() {

@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import coil.load
 import coil.size.Scale
@@ -16,6 +17,7 @@ import com.training.hiltretrofit.repository.movieDetailsRepository
 import com.training.hiltretrofit.response.MovieDetailsResponse
 import com.training.hiltretrofit.utils.Constants
 import com.training.hiltretrofit.utils.Constants.POSTER_BASE_URL
+import com.training.hiltretrofit.viewmodel.MoviesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
@@ -29,6 +31,8 @@ class MovieDetailsFragment : Fragment() {
     @Inject
     lateinit var movieDetailsRepository: movieDetailsRepository
 
+    val detailViewModel by viewModels<MoviesViewModel>()
+
     private val args by navArgs<MovieDetailsFragmentArgs>()
 
     override fun onCreateView(
@@ -40,54 +44,28 @@ class MovieDetailsFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         if (args.id != null) {
             val id = args.id
 
-            movieDetailsRepository.getMovieDetails(id, Constants.api_key)
-                .enqueue(object : Callback<MovieDetailsResponse> {
-                    override fun onResponse(
-                        p0: Call<MovieDetailsResponse>,
-                        response: Response<MovieDetailsResponse>
-                    ) {
-                        binding.prgBarMovies.visibility = View.VISIBLE
-                        if (response.isSuccessful) {
-                            when (response.code()) {
-                                in 200..299 -> {
-                                    binding.prgBarMovies.visibility = View.GONE
-                                    response.body()?.let { itBody ->
-                                        updateData(itBody)
-                                    }
-                                }
-                                in 300..399 -> {
-                                    Log.d(
-                                        "Response Code",
-                                        " Redirection messages : ${response.code()}"
-                                    )
-                                }
-                                in 400..499 -> {
-                                    Log.d(
-                                        "Response Code",
-                                        " Client error responses : ${response.code()}"
-                                    )
-                                }
-                                in 500..599 -> {
-                                    Log.d(
-                                        "Response Code",
-                                        " Server error responses : ${response.code()}"
-                                    )
-                                }
-                            }
-                        }
-                    }
+            detailViewModel.loadDetailsMovie(id)
+        }
+    }
 
-                    override fun onFailure(p0: Call<MovieDetailsResponse>, p1: Throwable) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-                    }
+        detailViewModel.detailsMovie.observe(viewLifecycleOwner){
+            updateData(it)
+        }
 
-                })
+        detailViewModel._loading.observe(viewLifecycleOwner){
+            if (it == true){
+                binding.prgBarMovies.visibility = View.VISIBLE
+            }else{
+                binding.prgBarMovies.visibility = View.GONE
+            }
         }
     }
 

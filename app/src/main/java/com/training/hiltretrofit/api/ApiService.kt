@@ -14,7 +14,7 @@ interface ApiService {
         @Query("page") page:Int):Response<MoviesListResponse>
 
     @GET("movie/{movie_id}")
-    fun getMovieDetails(
+    suspend fun getMovieDetails(
         @Path("movie_id") id:Int,
-        @Query("api_key") apiKey:String):Call<MovieDetailsResponse>
+        @Query("api_key") apiKey:String):Response<MovieDetailsResponse>
 }
